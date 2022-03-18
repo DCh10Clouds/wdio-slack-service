@@ -92,15 +92,20 @@ class SlackService {
     afterTest(test, context, results) {
         ++this.tests;
         this.testTitle = test.title;
-        if (this.tests <= 1) this.testNameFull = test.parent || test.fullName;
-        if (test._currentRetry >= 0 && !results.passed) {
+        if (this.tests <= 1){
+            this.testNameFull = test.fullName.replace(test.description, '');
+        }
+        if ((test._currentRetry ? test._currentRetry >= 0 : true) && !results.passed) {
             --this.tests;
-            if(test._currentRetry === test._retries || test._retries === -1) {
+            if( 
+                (test._currentRetry ? test._currentRetry === test._retries : true) || 
+                (test._retries ? test._retries === -1 : true)
+            ) {
                 let errorMessage;
                 if(results.error.matcherResult) {
                     errorMessage = results.error.matcherResult.message();
                 } else {
-                    errorMessage = results.error.toString();
+                    errorMessage = results.error.message;
                 }
                 let testError = errorMessage.replace(/[\u001b\u009b][-[+()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, "");
                 ++this.failedTests;
@@ -142,7 +147,7 @@ class SlackService {
                 author_name: `Total Scenarios: ${this.scenarios} | Passed Scenarios: ${this.passedScenarios} | Failed Scenarios: ${this.failedScenarios}`
             })
         } else {
-            this.attachment[0].title = `${this.testNameFull} | browser: ${this.caps.browserName} ${this.caps.browserVersion ? `v${this.caps.browserVersion}` : ``}`;
+            this.attachment[0].title = `${this.testNameFull} \n browser: ${this.caps.browserName} ${this.caps.browserVersion ? `v${this.caps.browserVersion}` : ``}`;
             this.attachment[0].color = `#ffc107`;
             this.attachment.push({author_name: `Total tests: ${this.tests} | Total passed: ${this.passedTests} | Total failed: ${this.failedTests}`, color: `#4366c7` });
         }
